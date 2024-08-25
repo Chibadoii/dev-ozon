@@ -1,0 +1,11 @@
+[package]
+name = "ozon_original"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4.9.0"
+dotenv = "0.15.0"
+serde = { version = "1.0.205", features = ["derive"] }
+reqwest = "0.12.7"
+http = "1.1.0"
