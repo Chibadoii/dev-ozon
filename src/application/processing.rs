@@ -1,15 +1,17 @@
+use crate::common::config::OzonConfig;
+use reqwest::Client;
 use std::fs::File;
 use std::io::{stdin, Read};
-use reqwest::Client;
-use crate::common::config::OzonConfig;
 
 const PRODUCT_LIST: &str = "https://api-seller.ozon.ru/v2/product/list";
 //Модуль посвещается обработчикам api
-pub async fn processing(config: &OzonConfig){
+pub async fn processing(config: &OzonConfig) {
     println!("Выберите номер ozon_api");
 
     let mut api_version = String::new();
-    stdin().read_line(&mut api_version).expect("Ошибка с выбором api");
+    stdin()
+        .read_line(&mut api_version)
+        .expect("Ошибка с выбором api");
 
     dbg!("create request client");
     let client = Client::new();
@@ -19,7 +21,9 @@ pub async fn processing(config: &OzonConfig){
         "1" => {
             let request_message = communication_with_user().await;
             dbg!("1 api pre");
-            let response = client.post(PRODUCT_LIST)
+            dbg!("{}", &request_message);
+            let response = client
+                .post(PRODUCT_LIST)
                 .headers(config.headers.clone())
                 .body(request_message)
                 .send()
@@ -28,17 +32,18 @@ pub async fn processing(config: &OzonConfig){
             dbg!("1 api post");
             println!("{:?}", response);
             dbg!("post response");
-        },
-        "2" => {},
-        _ => {println!("no api version")}
+        }
+        "2" => {}
+        _ => {
+            println!("no api version")
+        }
     }
-
 }
 
-pub async fn communication_with_user() -> String{
+pub async fn communication_with_user() -> String {
     loop {
-        println!("Введите 1, что бы указать путь к файлу с параметрам запроса");
-        println!("Введите 2 для записи параметоров запроса");
+        println!("Введите 1 для записи параметоров запроса");
+        println!("Введите 2, что бы указать путь к файлу с параметрам запроса");
 
         let mut input_method = String::new();
         stdin()
@@ -57,11 +62,15 @@ pub async fn communication_with_user() -> String{
             "2" => {
                 println!("Введите путь к файлу");
                 let mut input = String::new();
-                stdin().read_line(&mut input).expect("Некорректный путь к файлу");
+                stdin()
+                    .read_line(&mut input)
+                    .expect("Некорректный путь к файлу");
                 let mut get_file = dbg!(File::open(input).expect("Ошибка открытия файла"));
 
                 let mut request = String::new();
-                get_file.read_to_string(&mut request).expect("Ошибка считывания файла");
+                get_file
+                    .read_to_string(&mut request)
+                    .expect("Ошибка считывания файла");
 
                 return request;
             }

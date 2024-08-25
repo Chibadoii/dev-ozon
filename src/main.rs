@@ -3,9 +3,9 @@ pub mod application;
 mod common;
 mod presentation;
 
+use crate::application::processing::processing;
 use crate::common::config::OzonConfig;
 use application::handlers::health_check;
-use crate::application::processing::processing;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
