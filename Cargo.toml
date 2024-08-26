@@ -9,3 +9,4 @@ dotenv = "0.15.0"
 serde = { version = "1.0.205", features = ["derive"] }
 reqwest = "0.12.7"
 http = "1.1.0"
+rusqlite = "0.32.1"

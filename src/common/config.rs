@@ -1,15 +1,29 @@
-use actix_web::http::header;
-use actix_web::http::header::HeaderName;
 use http::header::{HeaderMap, HeaderValue};
-use std::str::FromStr;
+use rusqlite::Connection;
+
+const DBADRESS: &str = "example";
 pub struct GlobalConfig {
     ozon_config: OzonConfig,
     actix_config: ActixWebConfig,
+    db_config: DBConfig,
 }
 
 // Заглушка
 pub struct ActixWebConfig {
     pub moc: Option<String>,
+}
+
+pub struct DBConfig{
+    db_pool: Connection,
+}
+
+impl DBConfig{
+    fn new () -> Self{
+        let connection = Connection::open(DBADRESS);
+        Self{
+            db_pool: connection.expect("err connection")
+        }
+    }
 }
 
 pub struct OzonConfig {

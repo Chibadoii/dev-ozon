@@ -4,42 +4,26 @@ use std::fs::File;
 use std::io::{stdin, Read};
 
 const PRODUCT_LIST: &str = "https://api-seller.ozon.ru/v2/product/list";
+
+//todo: выбор способа ввода - обращение к озон - сохранение в бд - вывоб в ручке актикса
+
 //Модуль посвещается обработчикам api
 pub async fn processing(config: &OzonConfig) {
-    println!("Выберите номер ozon_api");
-
-    let mut api_version = String::new();
-    stdin()
-        .read_line(&mut api_version)
-        .expect("Ошибка с выбором api");
-
+    let request_message = communication_with_user().await;
     dbg!("create request client");
     let client = Client::new();
 
-    dbg!("{}", &api_version);
-    match api_version.trim() {
-        "1" => {
-            let request_message = communication_with_user().await;
-            dbg!("1 api pre");
-            dbg!("{}", &request_message);
-            let response = client
-                .post(PRODUCT_LIST)
-                .headers(config.headers.clone())
-                .body(request_message)
-                .send()
-                .await
-                .expect("response error");
-            dbg!("1 api post");
-            println!("{:?}", response);
-            dbg!("post response");
-        }
-        "2" => {}
-        _ => {
-            println!("no api version")
-        }
-    }
+    let response = client
+        .post(PRODUCT_LIST)
+        .headers(config.headers.clone())
+        .body(request_message)
+        .send()
+        .await
+        .expect("response error");
+    println!("{}", response.text().await.expect("Ошибка возврата значения респонза"));
 }
 
+// Возвращает сообщение содержащее запрос для Ozon
 pub async fn communication_with_user() -> String {
     loop {
         println!("Введите 1 для записи параметоров запроса");
