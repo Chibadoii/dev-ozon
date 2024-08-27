@@ -53,7 +53,9 @@ impl DBConfig {
                     migrations_path.display()
                 ));
 
-                self.db_connection.execute(&migration_script, [])?;
+                self.db_connection
+                    .execute(&migration_script, [])
+                    .expect("err insert migrations");
             }
         } else {
             panic!("Директории migrations не существует")

@@ -16,23 +16,23 @@ struct Filter {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct ResWrapper {
-    result: Res,
+pub struct ResWrapper {
+    pub result: CommonInfoProduct,
 }
 #[derive(Serialize, Deserialize, Debug)]
-struct Res {
-    items: Vec<ResponseProduct>,
-    total: i32,
-    last_id: String,
+pub struct CommonInfoProduct {
+    pub items: Vec<ResponseProduct>,
+    pub total: i32,
+    pub last_id: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct ResponseProduct {
-    product_id: i64,
-    offer_id: String,
-    is_fbo_visible: bool,
-    is_fbs_visible: bool,
-    archived: bool,
-    is_discounted: bool,
+pub struct ResponseProduct {
+    pub product_id: i64,
+    pub offer_id: String,
+    pub is_fbo_visible: bool,
+    pub is_fbs_visible: bool,
+    pub archived: bool,
+    pub is_discounted: bool,
     // status:bool
 }

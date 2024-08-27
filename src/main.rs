@@ -1,4 +1,3 @@
-use std::sync::{Arc, Mutex};
 use actix_web::{web, App, HttpServer};
 pub mod application;
 mod common;
@@ -6,16 +5,16 @@ mod presentation;
 
 use crate::application::handlers::{info_prices, product_list};
 use crate::application::processing::processing;
-use crate::common::config::{DBConfig, GlobalConfig, OzonConfig};
+use crate::common::config::{DBConfig, GlobalConfig};
 use application::handlers::health_check;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dbg!("pred_proc");
     let global_config = GlobalConfig::new();
-    //todo что то невнятное с глобал конфигом
+    let _create_db = DBConfig::migrations(&global_config.db_config);
 
-    let _ = processing(&global_config.ozon_config).await;
+    let _ = processing(&global_config).await;
     dbg!("postproc");
     HttpServer::new(|| {
         App::new()

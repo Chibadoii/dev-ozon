@@ -7,6 +7,6 @@ edition = "2021"
 actix-web = "4.9.0"
 dotenv = "0.15.0"
 serde = { version = "1.0.205", features = ["derive"] }
-reqwest = "0.12.7"
+reqwest = { version = "0.12.7", features = ["blocking", "json"] }
 http = "1.1.0"
 rusqlite = "0.32.1"
