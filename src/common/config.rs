@@ -1,39 +1,70 @@
 use http::header::{HeaderMap, HeaderValue};
 use rusqlite::Connection;
+use std::{env, fs};
 
-const DBADRESS: &str = "example";
 pub struct GlobalConfig {
-    ozon_config: OzonConfig,
-    actix_config: ActixWebConfig,
-    db_config: DBConfig,
+    pub ozon_config: OzonConfig,
+    pub actix_config: ActixWebConfig,
+    pub db_config: DBConfig,
 }
 
-// Заглушка
-pub struct ActixWebConfig {
-    pub moc: Option<String>,
-}
-
-pub struct DBConfig{
-    db_pool: Connection,
-}
-
-impl DBConfig{
-    fn new () -> Self{
-        let connection = Connection::open(DBADRESS);
-        Self{
-            db_pool: connection.expect("err connection")
+impl GlobalConfig {
+    pub fn new() -> Self {
+        Self {
+            ozon_config: OzonConfig::new(),
+            actix_config: ActixWebConfig::new(),
+            db_config: DBConfig::new(),
         }
     }
 }
 
-pub struct OzonConfig {
-    pub headers: HeaderMap,
+/// Заглушка
+pub struct ActixWebConfig {
+    pub moc: Option<String>,
 }
 
 impl ActixWebConfig {
     pub fn new() -> Self {
-        todo!()
+        Self { moc: None }
     }
+}
+
+/// Инициализация подключения и выполнение первичных миграций
+pub struct DBConfig {
+    pub db_connection: Connection,
+}
+
+impl DBConfig {
+    pub fn new() -> Self {
+        Self {
+            db_connection: Connection::open(env::var("DB_NAME").expect("Err get db name"))
+                .expect("Err create connection"),
+        }
+    }
+
+    pub fn migrations(&self) -> rusqlite::Result<()> {
+        let migrations_dir = std::path::Path::new("migrations");
+        if let Ok(dir) = fs::read_dir(&migrations_dir) {
+            for entry in dir {
+                let file_name = entry.unwrap().file_name();
+                let migrations_path = migrations_dir.join(file_name.clone());
+                let migration_script = fs::read_to_string(&migrations_path).expect(&format!(
+                    "Err read migrations: {}",
+                    migrations_path.display()
+                ));
+
+                self.db_connection.execute(&migration_script, [])?;
+            }
+        } else {
+            panic!("Директории migrations не существует")
+        }
+        Ok(())
+    }
+}
+
+/// Конфиг для общения с api ozon
+pub struct OzonConfig {
+    pub headers: HeaderMap,
 }
 
 impl OzonConfig {

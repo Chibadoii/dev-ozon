@@ -20,7 +20,13 @@ pub async fn processing(config: &OzonConfig) {
         .send()
         .await
         .expect("response error");
-    println!("{}", response.text().await.expect("Ошибка возврата значения респонза"));
+    println!(
+        "{}",
+        response
+            .text()
+            .await
+            .expect("Ошибка возврата значения респонза")
+    );
 }
 
 // Возвращает сообщение содержащее запрос для Ozon

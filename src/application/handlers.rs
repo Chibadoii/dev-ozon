@@ -9,7 +9,7 @@ pub async fn product_list() -> impl Responder {
 }
 
 // Todo: Нормально описать хендлеры
-pub async fn info_prices() -> impl Responder{
+pub async fn info_prices() -> impl Responder {
     format!("get info prices");
     HttpResponse::Ok().finish()
 }
