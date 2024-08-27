@@ -1,11 +1,10 @@
 use crate::common::config::{DBConfig, GlobalConfig, OzonConfig};
 use crate::presentation::ResWrapper;
-use http::StatusCode;
-use reqwest::{Client, Error, Response};
+use reqwest::Client;
 use rusqlite::params;
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{stdin, Read};
-use serde::{Deserialize, Serialize};
 
 const PRODUCT_LIST: &str = "https://api-seller.ozon.ru/v2/product/list";
 // todo: из хендлера передается название API, Название Таблицы, Название структуры
@@ -13,7 +12,6 @@ const PRODUCT_LIST: &str = "https://api-seller.ozon.ru/v2/product/list";
 
 //Модуль посвещается обработчикам api
 pub async fn processing(config: &GlobalConfig) {
-
     // Получение от пользователя фильтров запроса
     let request_message = communication_with_user().await;
 
@@ -22,7 +20,7 @@ pub async fn processing(config: &GlobalConfig) {
 
     //println!("{:?}", &response);
     // Охранение ответов озон
-    storage_response(response, &config.db_config);
+    let _ = storage_response(response, &config.db_config).await;
 }
 
 // Возвращает сообщение содержащее запрос для Ozon
@@ -71,7 +69,6 @@ pub async fn communication_with_user() -> String {
 }
 
 pub async fn ozon_request(config: &OzonConfig, request_message: String) -> ResWrapper {
-    dbg!("create request client");
     let response = Client::new()
         .post(PRODUCT_LIST)
         .headers(config.headers.clone())
@@ -81,16 +78,20 @@ pub async fn ozon_request(config: &OzonConfig, request_message: String) -> ResWr
         .expect("response error");
 
     let response: ResWrapper = response.json().await.unwrap();
-
+    dbg!("get response");
     response
 }
 
 pub async fn storage_response(response: ResWrapper, db_config: &DBConfig) -> rusqlite::Result<()> {
+    dbg!("save_in_storage");
     db_config.db_connection.execute(
         "INSERT INTO common_info_product (total, last_id) VALUES (?1, ?2)",
         params![response.result.total, response.result.last_id],
     )?;
 
+    //todo не проходит
+
+    dbg!("save first part");
     let _ = response.result.items.iter().map(|item| {
         db_config.db_connection
             .execute("INSERT INTO items (product_id, offer_id, is_fbo_visible, is_fbs_visible, archived, is_discounted) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
@@ -99,25 +100,26 @@ pub async fn storage_response(response: ResWrapper, db_config: &DBConfig) -> rus
 
     let mut db_response = db_config.db_connection.prepare("select * from items")?;
     let test_iter = db_response.query_map([], |row| {
-        Ok(TestResponse{
+        Ok(TestResponse {
             product_id: row.get(0)?,
-            id: row.get(1)?
+            id: row.get(1)?,
         })
     })?;
 
-    for item in test_iter{
-        match item{
+    for item in test_iter {
+        match item {
             Ok(item) => println!("{:?}", item),
-            Err(e) => eprintln!("err: {}", e)
+            Err(e) => eprintln!("err: {}", e),
         }
     }
 
     println!("{:?}", db_response);
+    dbg!("db_response");
     Ok(())
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct TestResponse{
+pub struct TestResponse {
     pub product_id: i64,
     pub id: i64,
 }

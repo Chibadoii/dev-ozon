@@ -9,10 +9,10 @@ pub struct RequestProduct {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Filter {
-    offer_id: String,
-    product_id: String,
-    visibility: String,
+pub struct Filter {
+    pub offer_id: String,
+    pub product_id: String,
+    pub visibility: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
