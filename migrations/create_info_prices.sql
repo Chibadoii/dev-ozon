@@ -1,6 +1,6 @@
 -- тестовое
-DROP TABLE IF EXISTS info_prices;
+-- DROP TABLE IF EXISTS info_prices;
 
-CREATE TABLE IF NOT EXISTS info_prices (id integer, "some" integer);
+CREATE TABLE IF NOT EXISTS public.info_prices (id integer, "some" integer);
 
-INSERT INTO info_prices (id, "some") VALUES (1, 3);
+--INSERT INTO info_prices (id, "some") VALUES (1, 3);

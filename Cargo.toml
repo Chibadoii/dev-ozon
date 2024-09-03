@@ -9,4 +9,5 @@ dotenv = "0.15.0"
 serde = { version = "1.0.205", features = ["derive"] }
 reqwest = { version = "0.12.7", features = ["blocking", "json"] }
 http = "1.1.0"
-rusqlite = "0.32.1"
+sqlx = { version = "0.8.1", features = ["runtime-tokio", "postgres"] }
+tokio = { version = "1.40.0", features = ["full"] }

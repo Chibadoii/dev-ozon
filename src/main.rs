@@ -11,8 +11,8 @@ use application::handlers::health_check;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dbg!("pred_proc");
-    let global_config = GlobalConfig::new();
-    let _create_db = DBConfig::migrations(&global_config.db_config);
+    let global_config = GlobalConfig::new().await;
+    let _insert_migrations = DBConfig::migrations(&global_config.db_config).await;
 
     let _ = processing(&global_config).await;
     dbg!("postproc");

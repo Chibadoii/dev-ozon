@@ -1,7 +1,6 @@
 use crate::common::config::{DBConfig, GlobalConfig, OzonConfig};
 use crate::presentation::ResWrapper;
 use reqwest::Client;
-use rusqlite::params;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{stdin, Read};
@@ -68,6 +67,7 @@ pub async fn communication_with_user() -> String {
     }
 }
 
+/// Посылает запрос озону и принимает ответ
 pub async fn ozon_request(config: &OzonConfig, request_message: String) -> ResWrapper {
     let response = Client::new()
         .post(PRODUCT_LIST)
@@ -82,36 +82,35 @@ pub async fn ozon_request(config: &OzonConfig, request_message: String) -> ResWr
     response
 }
 
-pub async fn storage_response(response: ResWrapper, db_config: &DBConfig) -> rusqlite::Result<()> {
+/// Сохраняет api response
+pub async fn storage_response(response: ResWrapper, db_config: &DBConfig) -> sqlx::Result<()> {
     dbg!("save_in_storage");
-    db_config.db_connection.execute(
-        "INSERT INTO common_info_product (total, last_id) VALUES (?1, ?2)",
-        params![response.result.total, response.result.last_id],
-    )?;
+
+    sqlx::query("INSERT INTO common_info_product (total, last_id) VALUES ($1, $2)")
+        .bind(response.result.total as i32)
+        .bind(&response.result.last_id)
+        .fetch_all(&db_config.db_connection)
+        .await.unwrap();
 
     //todo не проходит
-
+    dbg!("{}", &response);
     dbg!("save first part");
-    let _ = response.result.items.iter().map(|item| {
-        db_config.db_connection
-            .execute("INSERT INTO items (product_id, offer_id, is_fbo_visible, is_fbs_visible, archived, is_discounted) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-                     params![item.product_id, item.offer_id, item.is_fbo_visible, item.is_fbs_visible, item.archived, item.is_discounted])
-    });
+    for (count, item) in response.result.items.iter().enumerate(){
+            sqlx::query("INSERT INTO items (id, product_id, offer_id, is_fbo_visible, is_fbs_visible, archived, is_discounted) VALUES ($1, $2, $3, $4, $5, $6, $7)")
+                .bind(count as i32)
+                .bind(&item.product_id)
+                .bind(&item.offer_id)
+                .bind(&item.is_fbo_visible)
+                .bind(&item.is_fbs_visible)
+                .bind(&item.archived)
+                .bind(&item.is_discounted)
+                .fetch_all(&db_config.db_connection)
+                .await
+                .unwrap();
+    };
 
-    let mut db_response = db_config.db_connection.prepare("select * from items")?;
-    let test_iter = db_response.query_map([], |row| {
-        Ok(TestResponse {
-            product_id: row.get(0)?,
-            id: row.get(1)?,
-        })
-    })?;
-
-    for item in test_iter {
-        match item {
-            Ok(item) => println!("{:?}", item),
-            Err(e) => eprintln!("err: {}", e),
-        }
-    }
+    let mut db_response =  sqlx::query("select * from items").fetch_all(&db_config.db_connection)
+        .await.unwrap();
 
     println!("{:?}", db_response);
     dbg!("db_response");

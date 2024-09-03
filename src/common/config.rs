@@ -1,5 +1,5 @@
 use http::header::{HeaderMap, HeaderValue};
-use rusqlite::Connection;
+use sqlx::{postgres::PgPoolOptions, Error, Executor, Pool, Postgres};
 use std::{env, fs};
 
 pub struct GlobalConfig {
@@ -9,11 +9,11 @@ pub struct GlobalConfig {
 }
 
 impl GlobalConfig {
-    pub fn new() -> Self {
+    pub async fn new() -> Self {
         Self {
             ozon_config: OzonConfig::new(),
             actix_config: ActixWebConfig::new(),
-            db_config: DBConfig::new(),
+            db_config: DBConfig::new().await,
         }
     }
 }
@@ -31,18 +31,21 @@ impl ActixWebConfig {
 
 /// Инициализация подключения и выполнение первичных миграций
 pub struct DBConfig {
-    pub db_connection: Connection,
+    pub db_connection: Pool<Postgres>,
 }
 
 impl DBConfig {
-    pub fn new() -> Self {
+    pub async fn new() -> Self {
         Self {
-            db_connection: Connection::open(env::var("DB_NAME").expect("Err get db name"))
+            db_connection: PgPoolOptions::new()
+                .max_connections(10)
+                .connect(env::var("DB_NAME").expect("Err get db name").as_str())
+                .await
                 .expect("Err create connection"),
         }
     }
 
-    pub fn migrations(&self) -> rusqlite::Result<()> {
+    pub async fn migrations(&self) -> Result<(), Error> {
         let migrations_dir = std::path::Path::new("migrations");
         if let Ok(dir) = fs::read_dir(&migrations_dir) {
             for entry in dir {
@@ -53,9 +56,12 @@ impl DBConfig {
                     migrations_path.display()
                 ));
 
-                self.db_connection
-                    .execute(&migration_script, [])
+                let rows = sqlx::query(&*migration_script)
+                    .execute(&self.db_connection)
+                    .await
                     .expect("err insert migrations");
+                println!("{:?}", rows);
+                println!("{}", migration_script)
             }
         } else {
             panic!("Директории migrations не существует")
