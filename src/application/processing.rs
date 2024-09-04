@@ -4,22 +4,25 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{stdin, Read};
+use sqlx::postgres::PgRow;
 
 const PRODUCT_LIST: &str = "https://api-seller.ozon.ru/v2/product/list";
 // todo: из хендлера передается название API, Название Таблицы, Название структуры
 //todo: выбор способа ввода - обращение к озон - сохранение в бд - вывоб в ручке актикса
 
 //Модуль посвещается обработчикам api
-pub async fn processing(config: &GlobalConfig) {
+pub async fn processing(config: &GlobalConfig) -> Vec<PgRow>{
     // Получение от пользователя фильтров запроса
     let request_message = communication_with_user().await;
 
     // Получение запрашиваемой структуры с озона
     let response = ozon_request(&config.ozon_config, request_message).await;
 
-    //println!("{:?}", &response);
     // Охранение ответов озон
-    let _ = storage_response(response, &config.db_config).await;
+    let _err_storage = storage_response(response, &config.db_config).await;
+
+    get_all_items(&config.db_config).await
+
 }
 
 // Возвращает сообщение содержащее запрос для Ozon
@@ -98,7 +101,7 @@ pub async fn storage_response(response: ResWrapper, db_config: &DBConfig) -> sql
     for (count, item) in response.result.items.iter().enumerate(){
             sqlx::query("INSERT INTO items (id, product_id, offer_id, is_fbo_visible, is_fbs_visible, archived, is_discounted) VALUES ($1, $2, $3, $4, $5, $6, $7)")
                 .bind(count as i32)
-                .bind(&item.product_id)
+                .bind(item.product_id)
                 .bind(&item.offer_id)
                 .bind(&item.is_fbo_visible)
                 .bind(&item.is_fbs_visible)
@@ -108,17 +111,12 @@ pub async fn storage_response(response: ResWrapper, db_config: &DBConfig) -> sql
                 .await
                 .unwrap();
     };
-
-    let mut db_response =  sqlx::query("select * from items").fetch_all(&db_config.db_connection)
-        .await.unwrap();
-
-    println!("{:?}", db_response);
     dbg!("db_response");
     Ok(())
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct TestResponse {
-    pub product_id: i64,
-    pub id: i64,
+pub async fn get_all_items(db_config: &DBConfig) -> Vec<PgRow>{
+   sqlx::query("select * from items").fetch_all(&db_config.db_connection)
+        .await.unwrap()
+
 }

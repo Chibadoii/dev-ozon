@@ -1,7 +1,7 @@
 use http::header::{HeaderMap, HeaderValue};
-use sqlx::{postgres::PgPoolOptions, Error, Executor, Pool, Postgres};
+use sqlx::{postgres::PgPoolOptions, Error, Pool, Postgres};
 use std::{env, fs};
-
+#[derive(Debug, Clone)]
 pub struct GlobalConfig {
     pub ozon_config: OzonConfig,
     pub actix_config: ActixWebConfig,
@@ -19,6 +19,7 @@ impl GlobalConfig {
 }
 
 /// Заглушка
+#[derive(Debug, Clone)]
 pub struct ActixWebConfig {
     pub moc: Option<String>,
 }
@@ -30,6 +31,7 @@ impl ActixWebConfig {
 }
 
 /// Инициализация подключения и выполнение первичных миграций
+#[derive(Debug, Clone)]
 pub struct DBConfig {
     pub db_connection: Pool<Postgres>,
 }
@@ -71,6 +73,7 @@ impl DBConfig {
 }
 
 /// Конфиг для общения с api ozon
+#[derive(Debug, Clone)]
 pub struct OzonConfig {
     pub headers: HeaderMap,
 }
