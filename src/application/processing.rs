@@ -87,7 +87,7 @@ pub async fn ozon_request(config: &OzonConfig, request_message: String, api: API
 pub async fn storage_response(response: ResWrapper, db_config: &DBConfig) -> sqlx::Result<()> {
     dbg!("save_in_storage");
 
-//todo добавить diesel, вариант info prices слишком долго описывать
+//todo стоит перейти на diesel если структур будет много
     sqlx::query("INSERT INTO common_info_product (total, last_id) VALUES ($1, $2)")
         .bind(response.result.total as i32)
         .bind(&response.result.last_id)

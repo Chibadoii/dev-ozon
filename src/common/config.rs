@@ -48,26 +48,31 @@ impl DBConfig {
     }
 
     pub async fn migrations(&self) -> Result<(), Error> {
-        let migrations_dir = std::path::Path::new("migrations");
-        if let Ok(dir) = fs::read_dir(&migrations_dir) {
-            for entry in dir {
-                let file_name = entry.unwrap().file_name();
-                let migrations_path = migrations_dir.join(file_name.clone());
-                let migration_script = fs::read_to_string(&migrations_path).expect(&format!(
-                    "Err read migrations: {}",
-                    migrations_path.display()
-                ));
+        let migration_path = ["drop", "create"];
 
-                let rows = sqlx::query(&*migration_script)
-                    .execute(&self.db_connection)
-                    .await
-                    .expect("err insert migrations");
-                println!("{:?}", rows);
-                println!("{}", migration_script)
+       for path in migration_path.iter(){
+            let migrations_dir = std::path::Path::new(&format!("migrations/{}", path));
+            if let Ok(dir) = fs::read_dir(&migrations_dir) {
+                for entry in dir {
+                    let file_name = entry.unwrap().file_name();
+                    let migrations_path = migrations_dir.join(file_name.clone());
+                    let migration_script = fs::read_to_string(&migrations_path).expect(&format!(
+                        "Err read migrations: {}",
+                        migrations_path.display()
+                    ));
+
+                    let rows = sqlx::query(&*migration_script)
+                        .execute(&self.db_connection)
+                        .await
+                        .expect("err insert migrations");
+                    println!("{:?}", rows);
+                    println!("{}", migration_script)
+                }
+            } else {
+                panic!("Директории migrations не существует")
             }
-        } else {
-            panic!("Директории migrations не существует")
         }
+
         Ok(())
     }
 }

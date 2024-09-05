@@ -19,7 +19,7 @@ pub struct Item{
     pub price: Price,
     pub price_index: String,
     pub commissions: Commissions,
-    pub marketing_actions: Some(String),
+    pub marketing_actions: Option<String>,
     pub volume_weight: f64,
     pub price_indexes: PriceIndexes,
     pub acquiring: i32,
