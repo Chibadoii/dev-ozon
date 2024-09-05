@@ -1,28 +1,26 @@
+use crate::application::API;
 use crate::common::config::{DBConfig, GlobalConfig, OzonConfig};
 use crate::presentation::ResWrapper;
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
+use sqlx::postgres::PgRow;
 use std::fs::File;
 use std::io::{stdin, Read};
-use sqlx::postgres::PgRow;
 
-const PRODUCT_LIST: &str = "https://api-seller.ozon.ru/v2/product/list";
 // todo: из хендлера передается название API, Название Таблицы, Название структуры
 //todo: выбор способа ввода - обращение к озон - сохранение в бд - вывоб в ручке актикса
 
 //Модуль посвещается обработчикам api
-pub async fn processing(config: &GlobalConfig) -> Vec<PgRow>{
+pub async fn processing(config: &GlobalConfig, api: API) -> Vec<PgRow> {
     // Получение от пользователя фильтров запроса
     let request_message = communication_with_user().await;
 
     // Получение запрашиваемой структуры с озона
-    let response = ozon_request(&config.ozon_config, request_message).await;
+    let response = ozon_request(&config.ozon_config, request_message, api).await;
 
     // Охранение ответов озон
     let _err_storage = storage_response(response, &config.db_config).await;
 
     get_all_items(&config.db_config).await
-
 }
 
 // Возвращает сообщение содержащее запрос для Ozon
@@ -71,9 +69,9 @@ pub async fn communication_with_user() -> String {
 }
 
 /// Посылает запрос озону и принимает ответ
-pub async fn ozon_request(config: &OzonConfig, request_message: String) -> ResWrapper {
+pub async fn ozon_request(config: &OzonConfig, request_message: String, api: API) -> ResWrapper {
     let response = Client::new()
-        .post(PRODUCT_LIST)
+        .post(api.as_str())
         .headers(config.headers.clone())
         .body(request_message)
         .send()
@@ -89,17 +87,19 @@ pub async fn ozon_request(config: &OzonConfig, request_message: String) -> ResWr
 pub async fn storage_response(response: ResWrapper, db_config: &DBConfig) -> sqlx::Result<()> {
     dbg!("save_in_storage");
 
+//todo добавить diesel, вариант info prices слишком долго описывать
     sqlx::query("INSERT INTO common_info_product (total, last_id) VALUES ($1, $2)")
         .bind(response.result.total as i32)
         .bind(&response.result.last_id)
         .fetch_all(&db_config.db_connection)
-        .await.unwrap();
+        .await
+        .unwrap();
 
     //todo не проходит
     dbg!("{}", &response);
     dbg!("save first part");
-    for (count, item) in response.result.items.iter().enumerate(){
-            sqlx::query("INSERT INTO items (id, product_id, offer_id, is_fbo_visible, is_fbs_visible, archived, is_discounted) VALUES ($1, $2, $3, $4, $5, $6, $7)")
+    for (count, item) in response.result.items.iter().enumerate() {
+        sqlx::query("INSERT INTO items (id, product_id, offer_id, is_fbo_visible, is_fbs_visible, archived, is_discounted) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING")
                 .bind(count as i32)
                 .bind(item.product_id)
                 .bind(&item.offer_id)
@@ -110,13 +110,33 @@ pub async fn storage_response(response: ResWrapper, db_config: &DBConfig) -> sql
                 .fetch_all(&db_config.db_connection)
                 .await
                 .unwrap();
-    };
+    }
     dbg!("db_response");
     Ok(())
 }
 
-pub async fn get_all_items(db_config: &DBConfig) -> Vec<PgRow>{
-   sqlx::query("select * from items").fetch_all(&db_config.db_connection)
-        .await.unwrap()
+pub async fn get_all_items(db_config: &DBConfig) -> Vec<PgRow> {
+    sqlx::query("select * from items")
+        .fetch_all(&db_config.db_connection)
+        .await
+        .unwrap()
+}
 
+pub async fn custom_request(pool: &DBConfig) {
+
+    println!("Для ввода кастомного запроса введите \" input \" ");
+    let mut input = String::new();
+    stdin().read_line(&mut input).expect("err read user input");
+
+    match input.trim() {
+        "input" => { println!("Введите команду");
+            stdin().read_line(&mut input).expect("err read user input");
+                sqlx::query(&input)
+                    .fetch_all(&pool.db_connection)
+                    .await
+                    .expect("err get response from db");
+        },
+
+        _ => println!("Что то добавить")
+    }
 }

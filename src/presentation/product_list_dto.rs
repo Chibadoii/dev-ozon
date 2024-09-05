@@ -1,30 +1,12 @@
-mod info_prices_dto;
-pub mod product_list_dto;
-
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct RequestProduct {
-    #[serde(rename = "responseItems")]
-    pub filter: Filter,
-    pub last_id: String,
-    pub limit: i64,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Filter {
-    pub offer_id: String,
-    pub product_id: String,
-    pub visibility: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
 pub struct ResWrapper {
-    pub result: CommonInfoProduct,
+    pub result: crate::presentation::CommonInfoProduct,
 }
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CommonInfoProduct {
-    pub items: Vec<ResponseProduct>,
+    pub items: Vec<crate::presentation::ResponseProduct>,
     pub total: i32,
     pub last_id: String,
 }

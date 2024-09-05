@@ -1,20 +1,23 @@
-use actix_web::{web, App, HttpServer};
 use actix_web::web::Data;
+use actix_web::{web, App, HttpServer};
 
 pub mod application;
 mod common;
 mod presentation;
 
 use crate::application::handlers::{info_prices, product_list};
-use crate::application::processing::processing;
 use crate::common::config::{DBConfig, GlobalConfig};
 use application::handlers::health_check;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    std::env::set_var("RUST_LOG",
-                               format!("actix_server={log_level},actix_web={log_level}",
-                                       log_level="DEBUG"));
+    std::env::set_var(
+        "RUST_LOG",
+        format!(
+            "actix_server={log_level},actix_web={log_level}",
+            log_level = "DEBUG"
+        ),
+    );
     env_logger::init();
     dbg!("pred_proc");
     let global_config = GlobalConfig::new().await;
