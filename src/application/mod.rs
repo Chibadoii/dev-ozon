@@ -1,5 +1,6 @@
 pub mod handlers;
-pub mod processing;
+pub mod common_processing;
+mod processing;
 
 pub enum API{
     ProductList,
