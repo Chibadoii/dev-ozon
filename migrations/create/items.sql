@@ -1,5 +1,3 @@
---DROP TABLE IF EXISTS items;
-
 CREATE TABLE IF NOT EXISTS public.items
 (
 id integer PRIMARY KEY,

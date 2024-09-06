@@ -48,33 +48,34 @@ impl DBConfig {
         }
     }
 
+    //todo Можно загнать все миграции в одни файл, но станет ли лучше
+    /// Пересоздание таблиц
     pub async fn migrations(&self) -> Result<(), Error> {
-       // let migration_path = ["drop", "create"];
+        let migrations_path = vec!["drop", "create"];
 
-       // for path in migration_path.iter(){
-       //      let migrations_dir = std::path::Path::new(&format!("migrations/{}", path));
-        let migrations_dir = std::path::Path::new("migrations");
-        if migrations_dir.is_dir(){
-            for entry in fs::read_dir(&migrations_dir).expect("err read dir") {
-                let file_name = entry.unwrap().file_name();
-                let migrations_path = migrations_dir.join(file_name.clone());
-                let migration_script = fs::read_to_string(&migrations_path).expect(&format!(
-                    "Err read migrations: {}",
-                    migrations_path.display()
-                ));
+        for folder in migrations_path {
+            let path_folder = format!("migrations/{}", &folder);
+            let migrations_dir = std::path::Path::new(&path_folder);
 
-                let rows = sqlx::query(&*migration_script)
-                    .execute(&self.db_connection)
-                    .await
-                    .expect("err insert migrations");
-                println!("{:?}", rows);
-                println!("{}", migration_script)
+            if migrations_dir.is_dir() {
+                let paths = fs::read_dir(&migrations_dir)
+                    .expect("err read dir")
+                    .map(|entry| migrations_dir.join(entry.unwrap().file_name()))
+                    .collect::<Vec<_>>();
+
+                for path in paths {
+                    let migration_script = fs::read_to_string(&path)
+                        .expect(&format!("Err read migrations: {}", path.display()));
+
+                    let rows = sqlx::query(&*migration_script)
+                        .execute(&self.db_connection)
+                        .await
+                        .expect("err insert migrations");
+                    println!("{:?}", rows);
+                    println!("{}", migration_script)
+                }
             }
         }
-
-
-       // }
-
         Ok(())
     }
 }

@@ -1,19 +1,19 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Response{
+pub struct Response {
     pub result: Result,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Result{
+pub struct Result {
     pub items: Item,
     pub total: i32,
     pub last_id: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Item{
+pub struct Item {
     pub product_id: i32,
     pub offer_id: String,
     pub price: Price,
@@ -26,7 +26,7 @@ pub struct Item{
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Price{
+pub struct Price {
     pub price: String,
     pub old_price: String,
     pub premium_price: String,
@@ -42,7 +42,7 @@ pub struct Price{
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Commissions{
+pub struct Commissions {
     pub sales_percent: i32,
     pub fbo_fulfillment_amount: i32,
     pub fbo_direct_flow_trans_min_amount: i32,
@@ -64,7 +64,7 @@ pub struct Commissions{
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct PriceIndexes{
+pub struct PriceIndexes {
     pub price_indexes: String,
     pub external_index_data: IndexData,
     pub ozon_index_data: IndexData,
@@ -72,8 +72,8 @@ pub struct PriceIndexes{
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct IndexData{
+pub struct IndexData {
     pub minimal_price: String,
     pub minimal_price_currency: String,
-    pub price_index_value: i32
+    pub price_index_value: i32,
 }

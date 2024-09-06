@@ -87,7 +87,7 @@ pub async fn ozon_request(config: &OzonConfig, request_message: String, api: API
 pub async fn storage_response(response: ResWrapper, db_config: &DBConfig) -> sqlx::Result<()> {
     dbg!("save_in_storage");
 
-//todo стоит перейти на diesel если структур будет много
+    //todo стоит перейти на diesel если структур будет много
     sqlx::query("INSERT INTO common_info_product (total, last_id) VALUES ($1, $2)")
         .bind(response.result.total as i32)
         .bind(&response.result.last_id)
@@ -123,20 +123,20 @@ pub async fn get_all_items(db_config: &DBConfig) -> Vec<PgRow> {
 }
 
 pub async fn custom_request(pool: &DBConfig) {
-
     println!("Для ввода кастомного запроса введите \" input \" ");
     let mut input = String::new();
     stdin().read_line(&mut input).expect("err read user input");
 
     match input.trim() {
-        "input" => { println!("Введите команду");
+        "input" => {
+            println!("Введите команду");
             stdin().read_line(&mut input).expect("err read user input");
-                sqlx::query(&input)
-                    .fetch_all(&pool.db_connection)
-                    .await
-                    .expect("err get response from db");
-        },
+            sqlx::query(&input)
+                .fetch_all(&pool.db_connection)
+                .await
+                .expect("err get response from db");
+        }
 
-        _ => println!("Что то добавить")
+        _ => println!("Что то добавить"),
     }
 }

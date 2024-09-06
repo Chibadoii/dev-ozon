@@ -1,11 +1,11 @@
-use actix_web::web::Data;
-use sqlx::Row;
-use crate::application::API;
 use crate::application::common_processing::processing;
+use crate::application::API;
 use crate::common::config::GlobalConfig;
 use crate::presentation::ResponseProduct;
+use actix_web::web::Data;
+use sqlx::Row;
 
-pub async fn product_list_proc(config: Data<GlobalConfig>)-> Vec<ResponseProduct>{
+pub async fn product_list_proc(config: Data<GlobalConfig>) -> Vec<ResponseProduct> {
     let data = processing(&config, API::InfoPrices).await;
     let items: Vec<ResponseProduct> = data
         .iter()
@@ -21,6 +21,6 @@ pub async fn product_list_proc(config: Data<GlobalConfig>)-> Vec<ResponseProduct
     items
 }
 
-pub async fn info_prices_proc(_config: Data<GlobalConfig>){
+pub async fn info_prices_proc(_config: Data<GlobalConfig>) {
     todo!()
 }
