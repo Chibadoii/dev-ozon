@@ -7,7 +7,7 @@ pub async fn health_check() -> impl Responder {
 }
 
 pub async fn product_list(config: web::Data<GlobalConfig>) -> impl Responder {
-   let res = product_list_proc(config).await;
+    let res = product_list_proc(config).await;
     HttpResponse::Ok()
         .content_type("application/json")
         .json(res)
