@@ -1,6 +1,6 @@
 use crate::application::API;
 use crate::common::config::{DBConfig, GlobalConfig, OzonConfig};
-use crate::presentation::ResWrapper;
+use crate::presentation::product_list_dto::ResWrapper;
 use reqwest::Client;
 use sqlx::postgres::PgRow;
 use std::fs::File;
@@ -77,7 +77,6 @@ pub async fn ozon_request(config: &OzonConfig, request_message: String, api: API
         .send()
         .await
         .expect("response error");
-
     let response: ResWrapper = response.json().await.unwrap();
     dbg!("get response");
     response

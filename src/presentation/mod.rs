@@ -1,4 +1,4 @@
-mod info_prices_dto;
+pub mod info_prices_dto;
 pub mod product_list_dto;
 
 use serde::{Deserialize, Serialize};
@@ -16,26 +16,4 @@ pub struct Filter {
     pub offer_id: String,
     pub product_id: String,
     pub visibility: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ResWrapper {
-    pub result: CommonInfoProduct,
-}
-#[derive(Serialize, Deserialize, Debug)]
-pub struct CommonInfoProduct {
-    pub items: Vec<ResponseProduct>,
-    pub total: i32,
-    pub last_id: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ResponseProduct {
-    pub product_id: i64,
-    pub offer_id: String,
-    pub is_fbo_visible: bool,
-    pub is_fbs_visible: bool,
-    pub archived: bool,
-    pub is_discounted: bool,
-    // status:bool
 }

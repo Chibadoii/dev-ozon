@@ -2,11 +2,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ResWrapper {
-    pub result: crate::presentation::CommonInfoProduct,
+    pub result: CommonInfoProduct,
 }
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CommonInfoProduct {
-    pub items: Vec<crate::presentation::ResponseProduct>,
+    pub items: Vec<ResponseProduct>,
     pub total: i32,
     pub last_id: String,
 }
